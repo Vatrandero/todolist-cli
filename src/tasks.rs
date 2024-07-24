@@ -1,12 +1,12 @@
-pub struct Note { 
+pub struct Task { 
     pub header : String, 
      is_complete : bool, 
     pub descripion : String,
-    date_time : u64, // Дата чего? 
+    craation_date_time : u64,  
     category: String
 }
 
-impl Note { 
+impl Task { 
      /// NOTE: d - это кол-во секунд от UNIX_EPOCH. 
      pub fn new(head : String, desc: String, d: u64, cat: String  ) -> Self
      {
@@ -14,7 +14,7 @@ impl Note {
             header: head, 
             is_complete:false, 
             descripion: desc, 
-            date_time : d,
+            craation_date_time : d,
             category : cat                   
 
                                 
@@ -26,7 +26,7 @@ impl Note {
         self.header = nhead;
         self.descripion = ndesc;
         self.category = catg; 
-        self.date_time = d;
+        self.craation_date_time = d;
     
 
     }

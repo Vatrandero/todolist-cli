@@ -40,7 +40,7 @@ pub fn load_db(file_path: &Path) -> Connection {
     return conn
 } 
 
-pub fn commit (conn: &Connection, task: &crate::tasks::Note) -> Result<(), &'static str> {
+pub fn commit (conn: &Connection, task: &crate::tasks::Task) -> Result<(), &'static str> {
     
 
     Err("Send help")
