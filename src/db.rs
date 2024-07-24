@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::fs::File; 
 use std::io::{Read, Write, Seek, SeekFrom};
-use sqlite::{self, Connection};
+use rusqlite::Connection;
 //NOTE: ORM  в данном случаи не применяю.
 
 const SQL_CREATE_TABLE_QUERY : &str = 
@@ -23,16 +23,23 @@ const SQL_INSERT_QUERY: &str = "send ";
 pub fn load_db(file_path: &Path) -> Connection {
     // Файл базы пригодный? 
     let conn  = Connection::open(file_path).unwrap();
-    conn.execute(SQL_CREATE_TABLE_QUERY);
+    conn.execute(SQL_CREATE_TABLE_QUERY, ());
     
     // Индекс уже создан? возможно эта проверка лишняя. 
-    let _ = match conn.prepare( "SELECT COUNT(*) FROM sqlite_master WHERE  type = 'index'  \
-    AND name = 'catg' AND tbl_name = 'todos' " ).unwrap().read(0).unwrap()  {
-        0 => {
-            conn.execute(SQL_INIT_TABLE_INDEX_QUERY); 
+    // Изначально использовалаь библиотека sqlite, после 
+    // перехода на rusqlite сомнение в целесообразности
+    // проверки только урепились, как и в самом индексе.
+    let _ = match conn.prepare( 
+"SELECT COUNT(*) FROM sqlite_master WHERE  type = 'index'  \
+    AND name = 'catg' AND tbl_name = 'todos' " )
+                        .unwrap()
+                        .query_map([], |r |
+                            {r.get(0)} ).unwrap().last() {
+        Some(Ok(0)) => {
+            conn.execute(SQL_INIT_TABLE_INDEX_QUERY, ()); 
         }, 
-        1 => (),
-        _ => panic!("Abnormal output for index count.")
+        Some(Ok(1)) => (),
+        _ => panic!("I don't know what happaned here.")
     };
     
     // Если мы смлшди лькоыьб файд как БД. а в ходе проверки индекса 
