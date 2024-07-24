@@ -39,7 +39,10 @@ pub fn load_db(file_path: &Path) -> Connection {
             conn.execute(SQL_INIT_TABLE_INDEX_QUERY, ()); 
         }, 
         Some(Ok(1)) => (),
-        _ => panic!("I don't know what happaned here.")
+        Some(Err(e)) => panic!("While creating index  \n {:?}", e), 
+        Some(Ok(_)) => panic!("Abnormal index count "), 
+        Some(Err(e)) => panic!("error checking index. {:?}", e),
+        _ => panic!("I don't know what happaned here, only backtrace know,")
     };
     
     // Если мы смлшди лькоыьб файд как БД. а в ходе проверки индекса 
