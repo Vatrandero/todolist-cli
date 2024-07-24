@@ -25,26 +25,7 @@ pub fn load_db(file_path: &Path) -> Connection {
     let conn  = Connection::open(file_path).unwrap();
     conn.execute(SQL_CREATE_TABLE_QUERY, ());
     
-    // Индекс уже создан? возможно эта проверка лишняя. 
-    // Изначально использовалаь библиотека sqlite, после 
-    // перехода на rusqlite сомнение в целесообразности
-    // проверки только урепились, как и в самом индексе.
-    let _ = match conn.prepare( 
-"SELECT COUNT(*) FROM sqlite_master WHERE  type = 'index'  \
-    AND name = 'catg' AND tbl_name = 'todos' " )
-                        .unwrap()
-                        .query_map([], |r |
-                            {r.get(0)} ).unwrap().last() {
-        Some(Ok(0)) => {
-            conn.execute(SQL_INIT_TABLE_INDEX_QUERY, ()); 
-        }, 
-        Some(Ok(1)) => (),
-        Some(Err(e)) => panic!("While creating index  \n {:?}", e), 
-        Some(Ok(_)) => panic!("Abnormal index count "), 
-        Some(Err(e)) => panic!("error checking index. {:?}", e),
-        _ => panic!("I don't know what happaned here, only backtrace know,")
-    };
-    
+    conn.execute(SQL_INIT_TABLE_INDEX_QUERY, ()); 
     // Если мы смлшди лькоыьб файд как БД. а в ходе проверки индекса 
     // (с влмзможным его созданием) = то мы можес спокойно отдать соединение.
     return conn
