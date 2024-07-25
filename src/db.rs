@@ -31,7 +31,7 @@ pub struct ConnHandler{
 impl ConnHandler {
     
 
-pub fn load_db(file_path: &Path) -> Connection {
+pub fn load_db(file_path: &Path) -> Self {
     // Файл базы пригодный? 
     let conn  = Connection::open(file_path).unwrap();
     conn.execute(SQL_CREATE_TABLE_QUERY, ());
@@ -42,11 +42,9 @@ pub fn load_db(file_path: &Path) -> Connection {
     return ConnHandler { conn  }
 } 
 
-pub fn commit (conn: &Connection, task: &crate::tasks::Task) -> Result<(), &'static str> {
+pub fn commit_new (&self, task: &crate::tasks::Task) -> Result<(), &'static str> {
     
-
-    
-    Ok("work in gropress. ")
+    Ok(())
 }
 
 pub fn commit_update(&self, task: crate::tasks::Task)  { 

@@ -417,6 +417,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1cdbe9230a57259b37f7257d0aff38b8c9dbda3513edba2105e59b130189d82f"
 dependencies = [
  "bitflags",
+ "chrono",
  "fallible-iterator",
  "fallible-streaming-iterator",
  "hashlink",
@@ -511,7 +512,7 @@ dependencies = [
 
 [[package]]
 name = "todolist-cli"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "chrono",
  "clap",
