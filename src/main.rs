@@ -1,8 +1,8 @@
-pub mod db; 
+//use db::ConnecionHandler; 
 pub mod tasks; 
 pub mod utils; 
-
-use std::io::Read;  
+mod db; 
+use crate::db::ConnHandler;
 use std::path::{Path, PathBuf};
 use std::fs; 
 // Решаю не сканировать argv сам, использую clap.
@@ -49,6 +49,8 @@ fn main()  {
      println!("{}", todo!());
      print!(" Welcome to TODO  list manager!");
      let sin = std::io::stdin();
+     // В какой-то момент стали нужны сращу 3 вида буферов.
+     // TODO: Следующему второму оставить один, в худшем случаи 2.
      let mut buf = [0u8; 255]; 
      // Основной цикл программы
      print!(

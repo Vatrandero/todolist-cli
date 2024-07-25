@@ -1,3 +1,5 @@
+//! Здесь описана логика работы с базой данных и 
+//! структура-обёртка. 
 use std::path::Path;
 use std::fs::File; 
 use std::io::{Read, Write, Seek, SeekFrom};
@@ -17,8 +19,17 @@ const SQL_CREATE_TABLE_QUERY : &str =
 "; //NOTE: Этот литерал, вроде как, в ходе работы программы не содержит переносов.
 const SQL_INIT_TABLE_INDEX_QUERY: &str =  "CREATE INDEX catg ON todos (Cateory)" ;
 
-const SQL_INSERT_QUERY: &str = "send "; 
+const SQL_INSERT_QUERY_TEMPLATE: &str = "send "; 
+const SQL_UPDATE_QUERY_TEMPLATE: &str = "it's fine.";
 
+/// Обёртка, существует для более удобного 
+/// вызова функций, связанных с БД и 
+/// для консистенции кода. 
+pub struct ConnHandler{
+    conn : rusqlite::Connection
+}
+impl ConnHandler {
+    
 
 pub fn load_db(file_path: &Path) -> Connection {
     // Файл базы пригодный? 
@@ -28,11 +39,17 @@ pub fn load_db(file_path: &Path) -> Connection {
     conn.execute(SQL_INIT_TABLE_INDEX_QUERY, ()); 
     // Если мы смлшди лькоыьб файд как БД. а в ходе проверки индекса 
     // (с влмзможным его созданием) = то мы можес спокойно отдать соединение.
-    return conn
+    return ConnHandler { conn  }
 } 
 
 pub fn commit (conn: &Connection, task: &crate::tasks::Task) -> Result<(), &'static str> {
     
 
-    Err("Send help")
+    
+    Ok("work in gropress. ")
 }
+
+pub fn commit_update(&self, task: crate::tasks::Task)  { 
+
+    }
+} 
