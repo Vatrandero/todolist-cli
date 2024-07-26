@@ -13,7 +13,7 @@ const SQL_CREATE_TABLE_QUERY : &str =
     Description TEXT NOT NULL, 
     Category VARCHAR(32) NOT NULL, 
     Is_complteed BOOLEAN DEFAULT FALSE REFERENCES status, 
-    date_time INTEGER NOT NULL 
+    Creation_date_time INTEGER NOT NULL 
     
 )
 "; //NOTE: Этот литерал, вроде как, в ходе работы программы не содержит переносов.
@@ -42,12 +42,24 @@ pub fn load_db(file_path: &Path) -> Self {
     return ConnHandler { conn  }
 } 
 
-pub fn commit_new (&self, task: &crate::tasks::Task) -> Result<(), &'static str> {
-    
-    Ok(())
+pub fn commit_new (&self, task: &crate::tasks::Task) 
+-> Result<(), &'static str> {
+
+    let prer_res =  self.conn.prepare("INSERT INTO todos ( 
+    Name, Description, Category, date_creation
+)
+    VALUES (?,?,?,? ) ");     
+    Err("Not done yet ") 
 }
 
-pub fn commit_update(&self, task: crate::tasks::Task)  { 
-
+pub fn commit_update(&self, task: crate::tasks::Task) 
+-> Result<(), &'static str>  { 
+    Err("Not done yet.")
     }
 } 
+impl crate::tasks::Task { 
+    fn fron_table() {}
+   
+   
+    
+}  

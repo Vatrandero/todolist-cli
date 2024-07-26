@@ -45,7 +45,13 @@ fn main()  {
   
     //let debug: bool; 
   
-
+    // debug? переменная влияет на появление некоторых сообщения.
+    // для отладки, включена всегда если дебаг-сборка, 
+    // В релизе включается только аргументом.
+    // Можно было бы вынести a lazy_static или 
+    // каждый раз парсить argv. что бы предоставиь 
+    // генерацию сообщений в друие участки программы, 
+    // но тогда лучше задуматься о добавлении log+simplelog библиотек.
     #[cfg(debug_assertions)] 
     let debug = true; 
     #[cfg(not(debug_assertions))]
@@ -77,7 +83,7 @@ fn main()  {
         Use quote marks to have multiple words per operands.
         date shoukd be YYYY-MM-DD
         remov: remove name
-        update: update namme; will start interactive mode. 
+        update: (update namme); will start interactive mode. 
      show all  ");
      'mainloop: loop { 
         sin.read_line(&mut sbuf).unwrap();
