@@ -72,19 +72,23 @@ fn main()  {
   //   println!("{}", todo!());
      print!(" Welcome to TODO  list manager!");
      let sin = std::io::stdin();
-     // В какой-то момент стали нужны сращу 3 вида буферов.
-     // TODO: Следующему второму оставить один, в худшем случаи 2.
-     let mut buf = [0u8; 255];
      let mut sbuf: String = String::with_capacity(255); 
-     let mut vbuf: Vec<u8> = Vec::with_capacity(255);
+     // Содержит в себе разделёенные сегменты: команда, 
+     let mut segments: Vec<u8> = Vec::with_capacity(255);
      // Основной цикл программы
      print!(
-     "you can:  add todo (add name description date category). 
-        Use quote marks to have multiple words per operands.
-        date shoukd be YYYY-MM-DD
-        remov: remove name
-        update: (update namme); will start interactive mode. 
-     show all  ");
+     "you can:  add todo (add name description date category). \n\
+        Use quote marks to have multiple words per operands.\n\
+        date shoukd be YYYY-MM-DD \n\
+        remov: remove name .  \n\
+        update: (update namme); will start interactive mode. \n\
+        show all: show all. \n\
+       To show filtered: 
+       select where [predicate]: You can use date = \"YYYY-MM-DD HH:MM\", 
+       if on creation no task creation - 00:00 be used, you also may not 
+       specify time. \n\
+       other predicate: category. 
+       you can combine them by 'and' word.  ");
      'mainloop: loop { 
         sin.read_line(&mut sbuf).unwrap();
         'scanloop: for c in sbuf.chars() {

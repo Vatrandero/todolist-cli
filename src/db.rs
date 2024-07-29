@@ -1,7 +1,6 @@
 //! Здесь описана логика работы с базой данных и 
 //! структура-обёртка. 
-use std::path::Path;
-use std::fs::File; 
+use std::path::Path; 
 use std::io::{Read, Write, Seek, SeekFrom};
 use rusqlite::{params, Connection, Statement};
 //NOTE: ORM  в данном случаи не применяю.
@@ -147,7 +146,6 @@ pub fn commit_update(&self, task: crate::tasks::Task)
             
             }
         
-        Err("not done yet.".to_string())
 
     }
 } 
