@@ -40,18 +40,19 @@ impl Task {
     pub fn done(&mut self ) {
         self.is_complete = true;
     }    
-/// Генерирует картеж, который передаётся в таблицу.
+/// Генерирует картеж, который передаётся как параметры для записи SQL.
     /// * 0 - название,
     /// * 1 - описание, тело задачи,
     /// * 2 - категория,
     /// * 3 = дата слхжания,
-    fn get_all(&self) 
+    pub fn get_all(&self) 
     -> (String, String, String, i64, bool) {
+        // Эьа функцияя существует потому, что не все поля являются
 
         return( 
             self.name.clone(), self.descripion.clone(),
             self.category.clone(), self.craation_date_time, 
-            self.is_complete
+            self.is_complete.clone()
             
         )
     }
