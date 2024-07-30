@@ -125,39 +125,21 @@ fn main()  {
         //NOTE: ручной перебор для отлова кавычек.
         //? Возможно, стоило воспользоваться regex? 
         'scanloop: for c in sbuf.chars() {
-        // Мы уже знаем команду? если нет  - собрать сегмент
-        // для определения.
-        //А если знаем - собираем для неё недостающие сегменты в vbuf.
-        if let ActionRequested::NoAct = act   { 
-            // не пробел?
-            if c != ' ' {
-                //встречена кавычка? 
-                if c == '"' {in_quote ^= true } // переключаем значение.
-                segment.push(c);
-                continue 'scanloop;
-            } 
-            // встречен пробел, мы в многословной строке?
-            else if in_quote {
+        // Мы ещё не узнали команду? .
+        if c == '"' {
+            in_quote ^= true; 
+            continue 'scanloop;
+        }
+        if let ActionRequested::NoAct = act   {
+            if c != ' ' || in_quote { 
                 segment.push(c);
                 continue 'scanloop;
             }
-            // встречен пробел и мы не в многословной строке.
-            // посчитаем сегменты?
-            else {
-                vbuf.push(segment);
-                // от len отнимим 1 т.к команда не считается
-                // в кол-во аргументов.
-                if vbuf.len()-1 >= act.segments_needded() {
-                    // Мы собрали сегменты команды, выходим в mainloop.
-                    break 'scanloop
-                }
-            }
-         } // Закрыт блок кода, выпполняющиййся если операция определена. 
-        // здесь определяется действие.
-        else {
+            if c == ' ' && !in_quote { // Вообще-то кавычки в команде быть не долно. 
+
                 // Мы узнали первое слово запроса.
                 // попробуем подобрать действие?
-               act = match segment.to_ascii_uppercase().as_str() { 
+               act = match segment.trim().to_ascii_uppercase().as_str() { 
                 "ADD"=> { segment.clear(); ActionRequested::Add},
                 "REMOVE" => {segment.clear(); ActionRequested::Remove}
                 "UPDATE" => {segment.clear(); ActionRequested::Update}
@@ -166,12 +148,20 @@ fn main()  {
                           segment.clear(); 
                           ActionRequested::NoAct 
                         } 
+                
                 }
             }         
+
+            continue 'scanloop; 
         }
-           
+        else {
+            
+        }
+        
+    }   
         std::thread::sleep(std::time::Duration::from_millis(100))
      
 
+        
     }
 }
