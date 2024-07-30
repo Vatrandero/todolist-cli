@@ -137,10 +137,10 @@ pub fn commit_update(&self, task: crate::tasks::Task)
     }
 
     pub fn select_where(&self, predicate:  &str ) -> Result<Statement<'_>, String>   {
-      
+        //note: в коммите 13 ветки master WHERE и предикаты теперь опциональная.
         match  self.conn.prepare(
-            "SELECT * FROM todos WHERE {W}  "
-            .replace("{W]", predicate).as_str()) { 
+            "SELECT * FROM todos PREDICATES  "
+            .replace("PREDICATES", predicate).as_str()) { 
                 Ok(r) => return Ok(r), 
                 Err(e) => return Err( format!("Error ehile prepraring query, bad request? \n {} ", e))
             
