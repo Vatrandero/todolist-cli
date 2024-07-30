@@ -13,15 +13,35 @@ use chrono;
 use inquire;
 
 
-
-enum Action { 
-    Add,
-    Remove, 
-    Update, 
-    Select, 
-    NoAct
+// каждый элемент перечисления хранит число параметров,
+// нужное для проведение командаы.
+enum ActionRequested { 
+     Add    ,
+     Remove , 
+     Update ,
+     Select   , 
+     NoAct   
 }
 
+impl ActionRequested { 
+/// Взвисимости от запрошенной команды  - 
+/// нам может потребоваться разное кол-во 
+/// сегментов. метод возвращает кол-во нужное
+/// для запрошенной опеации, определённой
+/// экземпляром варианта перечисления.
+/// ### NOTE: счёт ведётся без учёта самой команды.
+    pub fn segments_needded(&self ) -> usize { 
+        match *self { 
+            Self::Add    => 4,
+            Self::Select => 2, // Всё, что после WHERE - передаётся без разбора.
+            Self::Update => 1,
+            Self::Remove => 1, 
+            Self::NoAct =>  0, // Команда не определена, сегменты не считаюся.
+            _ => 0 
+        }
+        
+    }
+}
 // Да, структура и использование сторонней бибилотеки ради двух аргументов - 
 // решение не очень оптимальное. 
 #[derive(Parser, Debug)]
@@ -72,10 +92,6 @@ fn main()  {
   //   println!("{}", todo!());
      print!(" Welcome to TODO  list manager!");
      let sin = std::io::stdin();
-     let mut sbuf: String = String::with_capacity(255); 
-     // Содержит в себе разделёенные сегменты: команда, 
-     let mut segments: Vec<u8> = Vec::with_capacity(255);
-     // Основной цикл программы
      print!(
      "you can:  add todo (add name description date category). \n\
         Use quote marks to have multiple words per operands.\n\
@@ -89,15 +105,73 @@ fn main()  {
        specify time. \n\
        other predicate: category. 
        you can combine them by 'and' word.  ");
-     'mainloop: loop { 
+       let mut sbuf: String = String::with_capacity(255); 
+       // сегмент - целоая часть команды: сама команда или её
+       // аргумент.
+       //  segment'ы разделены проблеами, но если начинается с кавычек
+       // - то пробелы игнорируются.
+       let mut segment = String::with_capacity(20);
+       // Содержит в себе разделёенные сегменты: команда, аргументы. 
+       let mut vbuf: Vec<String> = Vec::with_capacity(255);
+       let mut act = ActionRequested::NoAct;
+       // Очень важно отслеживать, встртили мы 
+       // кавычки или  нет. 
+       // в целях гарантии постоянства переменной
+       // между циклами - декларирууется перед циклоами, но
+       //  не в одном из них.
+       let in_quote = false; 
+       'mainloop: loop { 
         sin.read_line(&mut sbuf).unwrap();
+        //NOTE: ручной перебор для отлова кавычек.
+        //? Возможно, стоило воспользоваться regex? 
         'scanloop: for c in sbuf.chars() {
-        if c == ' ' {
-            todo!() 
+        // Мы уже знаем команду? если нет  - собрать сегмент
+        // для определения.
+        //А если знаем - собираем для неё недостающие сегменты в vbuf.
+        if let ActionRequested::NoAct = act   { 
+            // не пробел?
+            if c != ' ' {
+                //встречена кавычка? 
+                if c == '"' {in_quote ^= true } // переключаем значение.
+                segment.push(c);
+                continue 'scanloop;
+            } 
+            // встречен пробел, мы в многословной строке?
+            else if in_quote {
+                segment.push(c);
+                continue 'scanloop;
+            }
+            // встречен пробел и мы не в многословной строке.
+            // посчитаем сегменты?
+            else {
+                vbuf.push(segment);
+                // от len отнимим 1 т.к команда не считается
+                // в кол-во аргументов.
+                if vbuf.len()-1 >= act.segments_needded() {
+                    // Мы собрали сегменты команды, выходим в mainloop.
+                    break 'scanloop
+                }
+            }
+         } // Закрыт блок кода, выпполняющиййся если операция определена. 
+        // здесь определяется действие.
+        else {
+                // Мы узнали первое слово запроса.
+                // попробуем подобрать действие?
+               act = match segment.to_ascii_uppercase().as_str() { 
+                "ADD"=> { segment.clear(); ActionRequested::Add},
+                "REMOVE" => {segment.clear(); ActionRequested::Remove}
+                "UPDATE" => {segment.clear(); ActionRequested::Update}
+                "SELECT" => {segment.clear(); ActionRequested::Select}
+                 _   =>{  print!("unknown command");
+                          segment.clear(); 
+                          ActionRequested::NoAct 
+                        } 
+                }
+            }         
         }
-        } 
+           
         std::thread::sleep(std::time::Duration::from_millis(100))
-    }  
+     
 
-
-} 
+    }
+}
