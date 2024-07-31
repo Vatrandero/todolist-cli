@@ -1,16 +1,16 @@
-use chrono; 
+use chrono::{self, Local}; 
 
 pub struct Task { 
     pub name : String, 
      is_complete : bool, 
     pub descripion : String,
-    craation_date_time : i64,  
+    craation_date_time : chrono::NaiveDateTime,  
     category: String
 }
 
 impl Task { 
      /// NOTE: d - это кол-во секунд от UNIX_EPOCH. 
-     pub fn new(head : String, desc: String, d: i64, cat: String  ) -> Self
+     pub fn new(head : String, desc: String, d: chrono::NaiveDateTime, cat: String  ) -> Self
      {
          Self {
             name: head, 
@@ -28,7 +28,7 @@ impl Task {
             
          }
      }
-    pub fn update(&mut self, nhead:String, ndesc:String, d : i64, catg :String  ) {
+    pub fn update(&mut self, nhead:String, ndesc:String, d : chrono::NaiveDateTime, catg :String  ) {
         
         self.name = nhead;
         self.descripion = ndesc;
@@ -46,12 +46,13 @@ impl Task {
     /// * 2 - категория,
     /// * 3 = дата слхжания,
     pub fn get_all(&self) 
-    -> (String, String, String, i64, bool) {
+    -> (String, String, String, String, bool) {
         // Эьа функцияя существует потому, что не все поля являются
 
         return( 
             self.name.clone(), self.descripion.clone(),
-            self.category.clone(), self.craation_date_time, 
+            self.category.clone(), 
+            self.craation_date_time.format("%Y-m-d %H:%M").to_string(), 
             self.is_complete.clone()
             
         )
@@ -63,9 +64,9 @@ impl Task {
 impl std::fmt::Display for Task { 
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let status = if (self.is_complete){"Done"} else{"On"};
-        write!(f, "Name: {} \n Description:\n {}; \n Status:{} \n Time of creation:{}   ",
+        write!(f, "Name: {} \n Description:\n {}; \n Status:{} \n datetime of creation:{}   ",
          self.name, self.descripion, status,
-         chrono::DateTime::from_timestamp(self.craation_date_time, 0).unwrap()   )        
+         self.craation_date_time.format("%Y-m-d %H:%M").to_string())        
     }
 }
 

@@ -30,7 +30,7 @@ pub fn load_db(file_path: &Path) -> Self {
     Description TEXT NOT NULL, 
     Category VARCHAR(32) NOT NULL, 
     Is_complteed BOOLEAN DEFAULT FALSE REFERENCES status, 
-    Creation_date_time INTEGER NOT NULL 
+    Creation_date_time DATETIME NOT NULL 
     
 )
 ", ());

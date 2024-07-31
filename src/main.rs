@@ -4,13 +4,15 @@ pub mod utils;
 mod db; 
 use crate::db::ConnHandler;
 use std::io::{BufRead,Read};  
+use std::ops::Add;
 use std::path::{Path, PathBuf};
 use std::fs; 
 // Решаю не сканировать argv сам, использую clap.
 use clap::Parser;   
-// Для удобной конвертации даты и времени в секунды и обратно.
-use chrono; 
-use inquire;
+// Для удобной конвертации даты и времени в секунды и обратно. 
+use inquire::{self, Select};
+use tasks::Task;
+use chrono::prelude::*;
 
 
 // каждый элемент перечисления хранит число параметров,
@@ -88,15 +90,16 @@ fn main()  {
         panic!("Path leading to Directory, not File, can not continue. ")
          
      }
-     let conn = todo!(); //db::load_db(path);
+     let conn = ConnHandler::load_db(path); //db::load_db(path);
   //   println!("{}", todo!());
      print!(" Welcome to TODO  list manager!");
      let sin = std::io::stdin();
      print!(
-     "you can:  add todo (add name description date category). \n\
+     "you can: \n\
+        add todo (add name description date category). \n\
         Use quote marks to have multiple words per operands.\n\
-        date shoukd be YYYY-MM-DD \n\
-        remov: remove name .  \n\
+        date shoukd be YYYY-MM-DD, also may be YYYY-MM-DD HH:MM \n\
+        remove: remove name .  \n\
         update: (update namme); will start interactive mode. \n\
         show all: show all. \n\
        To show filtered: 
@@ -119,7 +122,7 @@ fn main()  {
        // в целях гарантии постоянства переменной
        // между циклами - декларирууется перед циклоами, но
        //  не в одном из них.
-       let in_quote = false; 
+       let mut in_quote = false; 
        'mainloop: loop { 
         sin.read_line(&mut sbuf).unwrap();
         //NOTE: ручной перебор для отлова кавычек.
@@ -154,14 +157,70 @@ fn main()  {
 
             continue 'scanloop; 
         }
+        // Мы знаем запрошенную операцию и пытаемься
+        // собрать информацию для 
         else {
-            
+         if c != ' ' || in_quote {
+            segment.push(c);
+            continue 'scanloop;
+         }
+         if c == ' '  && !in_quote { 
+            vbuf.push(std::mem::take(&mut segment) );  
+            if vbuf.len() >= act.segments_needded() { 
+                // Мы собрали сгменты для запрошенной операции.
+                // нам здесь делать больше нечего.
+                // переходим в mainloop.
+                break 'scanloop
+            }
+         }              
         }
         
-    }   
-        std::thread::sleep(std::time::Duration::from_millis(100))
-     
+    }  
+    // К этому моменту мы должны знать команду
+    // и должны иметь набор даннных дляя неё.
+    match &act { 
+        ActionRequested::Add => { 
+            if debug {
+                println!("dbg: reached add call, segments are: \n {:?}", vbuf) 
+            }
+            //FIXME: Оверхед по работе с элементами из вектора.
+            //FIXME: Небрежное получение и вызов to_owned.
+            // Возможно, итеративный drain() лучше? 
+            let name = vbuf.get(0).unwrap().to_owned(); 
+            let dscr = vbuf.get(1).unwrap().to_owned(); 
+            let date : NaiveDateTime; 
+            date = match utils::get_timedate(vbuf[2].as_str()) {
+                Ok(dt) => dt, 
+                Err(e) => { 
+                    print!("Failed to parse date-time.");
+                    if debug{print!("{:?}", e)}
+                    vbuf.clear();
+                    continue 'mainloop;
+                }                
+            };
+            let cat = vbuf.get(3).unwrap().to_owned();
+            match conn.commit_new(&Task::new(name, dscr,
+                                 date, cat)) {
+                                    Ok(_) => {
+                                        print!("add sucess.");
+                                        vbuf.clear();
+                                    }
+                                    Err(e) => { 
+                                        println!("failed to add Task");
+                                        if debug{ 
+                                            println!("{:?}",e);
+                                            vbuf.clear();
+                                        }
+                                    }
+                                 } 
 
+           }
+            
         
+
+        _ => { vbuf.clear(); continue;}  
+    }
+
+    std::thread::sleep(std::time::Duration::from_millis(100))       
     }
 }
