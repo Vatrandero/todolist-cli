@@ -208,15 +208,18 @@ fn main()  {
                                     Err(e) => { 
                                         println!("failed to add Task");
                                         if debug{ 
+                                            
                                             println!("{:?}",e);
                                             vbuf.clear();
                                         }
                                     }
                                  } 
 
-           }
-            
-        
+           }  
+        ActionRequested::Remove => { 
+         conn.remove(vbuf.get(0).unwrap());
+         vbuf.clear();   
+        }
 
         _ => { vbuf.clear(); continue;}  
     }

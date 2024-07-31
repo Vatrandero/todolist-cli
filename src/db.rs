@@ -135,7 +135,12 @@ pub fn commit_update(&self, task: crate::tasks::Task)
         }
         
     }
-
+    pub fn remove(&self, name:&String) {
+        // Не имеет особого смысла проверять ошибку.
+        _ = self.conn.prepare("DELETE FROM todos WHERE name = ? ").unwrap().execute(params![name]);
+        
+        
+    }
     pub fn select_where(&self, predicate:  &str ) -> Result<Statement<'_>, String>   {
         //note: в коммите 13 ветки master WHERE и предикаты теперь опциональная.
         match  self.conn.prepare(
