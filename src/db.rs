@@ -103,9 +103,9 @@ pub fn commit_update(&self, task: crate::tasks::Task)
     
     Вообще - стоит признать, что я виноват не уточнив в первый день 
     такие вопросы.*/
-    let prer_res =  self.conn.prepare("UPDATE todos ( 
-     Description = ? , Category = ? , 
-     Creation_date_time = ?, Is_completed = ?) 
+    let prer_res =  self.conn.prepare("UPDATE todos SET  \
+     Description = ? , Category = ? ,\
+     Creation_date_time = ?\
      WHERE name = ? 
  "); // Порядок для get_all = 1,2,3,4,0
         //? Что вообеще модет пойти не так? 
@@ -119,8 +119,8 @@ pub fn commit_update(&self, task: crate::tasks::Task)
     
             // NOTE: Возможно тоит избегать строковых ошибок и отдавать ErrorKind, можно составить внутри проекта. 
             // NOTE: Было бы эквивалентом PreparationError
-            Err(_) => return Err("Error on preparing query to data base.
-                                Database corrupted or SQLite failed itself?".to_string()) 
+            Err(e) => return Err(format!( "Error on preparing query to data base.
+                                Database corrupted or SQLite failed itself? {:?}",e).to_string()) 
             
             
         };
@@ -129,11 +129,11 @@ pub fn commit_update(&self, task: crate::tasks::Task)
         // Оптимальность - достаточная, есть ли более оптимальный вариант? 
         // djpvj;yj/
         let p = task.get_all(); 
-        match stmt.execute(params![p.1, p.2, p.3, p.4 as u8, p.0]) { 
+        match stmt.execute(params![p.1, p.2, p.3,  p.0]) { 
             Ok(_) => return  Ok(()) ,        //   ^^^^^^^^^ не уверен, превратится ли bool в 0|1.
             // Было бы эквивалетно: ExecutionFailure
             // Либо, т.к .execute вовзращает явную ошибку - rusqliteError(e)
-            Err(e) => return Err(format!( "Error on query execution. \n {}", e))
+            Err(e) => return Err(format!( "Error on query execution. \n {:?}",e ))
         }
         
     }

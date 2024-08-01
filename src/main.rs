@@ -234,12 +234,21 @@ fn main()  {
             // как структуру, нам это понадобится потому что
             //Все поля структуры будут рассматриваться как оригинал.
             // если пользователь не проедложит свой вариант - мы оставим существующий вариант.
-            let mut task = match conn.select_by_name_prep() { // Rows живёт столько же, сколько State,emt. 
-               Ok(mut t) => { 
-                   t.query_map(params![vbuf.get(0).unwrap()],
-                         |x | -> Result<Task, rusqlite::Error> { Ok( Task::new(x.get(0).unwrap(),x.get(1).unwrap(),
-                            x.get(2)?,x.get(3)?))}).unwrap().last().unwrap().ok().unwrap() // FIXME: Слишком большое нагромаждение.
-               }
+            let mut task: Task = match conn.select_by_name_prep() { // Rows живёт столько же, сколько State,emt. 
+               Ok(mut _t) => { 
+                   match (_t.query(params![vbuf.get(0).unwrap()]).unwrap().next().unwrap()) {
+                   Some(t) => {
+                
+                    let mut dt = t.get::<_,String>(4).unwrap();
+                    Task::new(t.get(0).unwrap(),
+                         t.get(1).unwrap(),
+                          utils::get_timedate(dt.as_str()).unwrap(),
+                          t.get(2).unwrap())
+                   },
+                    _ => { print!("no such task."); continue 'mainloop;  }
+                   }
+                          // FIXME: Слишком большое нагромаждение.
+               },
                 _ => {vbuf.clear(); 
                     act = ActionRequested::NoAct;  continue 'mainloop;}
             };
@@ -259,8 +268,8 @@ fn main()  {
                        // тем не менее, Task и некоторые методы уже работают с NaiveDAteTIme
                        let _ndatetime = { 
                         let mut s = __ndatetime.format("%Y-%m-%d").to_string();
-                        s.push_str("00:00");
-                          chrono::NaiveDateTime::parse_from_str(&s, "%Y-%m-%d %H:%m").unwrap() 
+                        s.push_str(" 00:00");
+                          chrono::NaiveDateTime::parse_from_str(&s, "%Y-%m-%d %H:%M").unwrap() 
                        };
                        // обновим таску и отправим её в БД.
                        task.update(_ndescr, _ndatetime, _ncat);
