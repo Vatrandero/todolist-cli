@@ -6,11 +6,13 @@ use crate::db::ConnHandler;
 use std::io::{BufRead,Read};  
 use std::ops::Add;
 use std::path::{Path, PathBuf};
-use std::fs; 
+use std::fs;
+use std::str::FromStr; 
 // Решаю не сканировать argv сам, использую clap.
 use clap::Parser;   
 // Для удобной конвертации даты и времени в секунды и обратно. 
 use inquire::{self, Select};
+use rusqlite::params;
 use tasks::Task;
 use chrono::prelude::*;
 
@@ -103,11 +105,12 @@ fn main()  {
         update: (update namme); will start interactive mode. \n\
         show all: show all. \n\
        To show filtered: 
-       select where [predicate]: You can use date = \"YYYY-MM-DD HH:MM\", 
+       select where [predicate]: You can use date = 'YYYY-MM-DD HH:MM', 
        if on creation no task creation - 00:00 be used, you also may not 
        specify time. \n\
-       other predicate: category. 
-       you can combine them by 'and' word.  ");
+       YOU NEED TO USE '' OR \"\" TO WRAP VALUES!!!
+       other predicate: category='some'. 
+       you can combine them by 'and' word. \n ");
        let mut sbuf: String = String::with_capacity(255); 
        // сегмент - целоая часть команды: сама команда или её
        // аргумент.
@@ -125,6 +128,9 @@ fn main()  {
        let mut in_quote = false; 
        'mainloop: loop { 
         sin.read_line(&mut sbuf).unwrap();
+      //  sbuf.clear(); 
+      //  vbuf.clear(); 
+       // act = ActionRequested::NoAct;
         //NOTE: ручной перебор для отлова кавычек.
         //? Возможно, стоило воспользоваться regex? 
         'scanloop: for c in sbuf.chars() {
@@ -149,22 +155,21 @@ fn main()  {
                 "SELECT" => {segment.clear(); ActionRequested::Select}
                  _   =>{  print!("unknown command");
                           segment.clear(); 
-                          ActionRequested::NoAct 
+                          continue 'scanloop;
                         } 
                 
-                }
-            }         
+                };
+            continue 'scanloop; }         
 
-            continue 'scanloop; 
         }
         // Мы знаем запрошенную операцию и пытаемься
         // собрать информацию для 
         else {
-         if c != ' ' || in_quote {
+         if (c != ' ' && c != '\n' )|| in_quote {
             segment.push(c);
             continue 'scanloop;
          }
-         if c == ' '  && !in_quote { 
+         if (c == ' ' || c == '\n'  )&& !in_quote { 
             vbuf.push(std::mem::take(&mut segment) );  
             if vbuf.len() >= act.segments_needded() { 
                 // Мы собрали сгменты для запрошенной операции.
@@ -189,7 +194,7 @@ fn main()  {
             let name = vbuf.get(0).unwrap().to_owned(); 
             let dscr = vbuf.get(1).unwrap().to_owned(); 
             let date : NaiveDateTime; 
-            date = match utils::get_timedate(vbuf[2].as_str()) {
+            date = match utils::get_timedate(vbuf.get(2).unwrap().as_str()) {
                 Ok(dt) => dt, 
                 Err(e) => { 
                     print!("Failed to parse date-time.");
@@ -212,6 +217,7 @@ fn main()  {
                                             println!("{:?}",e);
                                             vbuf.clear();
                                         }
+
                                     }
                                  } 
 
@@ -219,6 +225,49 @@ fn main()  {
         ActionRequested::Remove => { 
          conn.remove(vbuf.get(0).unwrap());
          vbuf.clear();   
+        }, 
+        ActionRequested::Update => { 
+            // Для реализации интерактивного режима
+            // выбрана библиотека inquire.
+
+            // для начала - попробуем взять оригинал
+            // как структуру, нам это понадобится потому что
+            //Все поля структуры будут рассматриваться как оригинал.
+            // если пользователь не проедложит свой вариант - мы оставим существующий вариант.
+            let mut task = match conn.select_by_name_prep() { // Rows живёт столько же, сколько State,emt. 
+               Ok(mut t) => { 
+                   t.query_map(params![vbuf.get(0).unwrap()],
+                         |x | -> Result<Task, rusqlite::Error> { Ok( Task::new(x.get(0).unwrap(),x.get(1).unwrap(),
+                            x.get(2)?,x.get(3)?))}).unwrap().last().unwrap().ok().unwrap() // FIXME: Слишком большое нагромаждение.
+               }
+                _ => {vbuf.clear(); 
+                    act = ActionRequested::NoAct;  continue 'mainloop;}
+            };
+                               
+                        // Мы не можем заменить имя. 
+
+                       //   let prms = 
+                       print!("Enter new feilds of task selected: \n");
+                       let _ndescr = inquire::Text::new("new description")
+                       .with_default(&task.descripion).prompt().unwrap(); // возможно - лучше было бы промпт editroe'а
+
+                       let _ncat  = inquire::Text::new("Enter new category")
+                       .with_default(&task.category).prompt().unwrap(); // NOTE: можно настроить autocomply, собрать из БД категории и предлагать их
+
+                       let  __ndatetime = inquire::DateSelect::new("date:").prompt().unwrap(); // Нет промтпа DateTime. это не проблема.
+                       // SQLite адекватно обрабатывает запросы на поиск по дате, если время отсуствует.
+                       // тем не менее, Task и некоторые методы уже работают с NaiveDAteTIme
+                       let _ndatetime = { 
+                        let mut s = __ndatetime.format("%Y-%m-%d").to_string();
+                        s.push_str("00:00");
+                          chrono::NaiveDateTime::parse_from_str(&s, "%Y-%m-%d %H:%m").unwrap() 
+                       };
+                       // обновим таску и отправим её в БД.
+                       task.update(_ndescr, _ndatetime, _ncat);
+                       conn.commit_update(task).unwrap();
+
+
+
         }
 
         _ => { vbuf.clear(); continue;}  

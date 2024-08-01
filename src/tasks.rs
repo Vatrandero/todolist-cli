@@ -1,11 +1,14 @@
 use chrono::{self, Local}; 
 
 pub struct Task { 
+    // FIXME: не все поля в начале были  публичными.
+    // поэтому существует get_all().
+    //TODO: заменить обработки get_all на непосредственное взятие полей.
     pub name : String, 
-     is_complete : bool, 
+    pub is_complete : bool, 
     pub descripion : String,
-    craation_date_time : chrono::NaiveDateTime,  
-    category: String
+    pub craation_date_time : chrono::NaiveDateTime,  
+    pub category: String
 }
 
 impl Task { 
@@ -28,9 +31,9 @@ impl Task {
             
          }
      }
-    pub fn update(&mut self, nhead:String, ndesc:String, d : chrono::NaiveDateTime, catg :String  ) {
+    pub fn update(&mut self,  ndesc:String, d : chrono::NaiveDateTime, catg :String  ) {
         
-        self.name = nhead;
+    
         self.descripion = ndesc;
         self.category = catg; 
         self.craation_date_time = d;
@@ -45,6 +48,7 @@ impl Task {
     /// * 1 - описание, тело задачи,
     /// * 2 - категория,
     /// * 3 = дата слхжания,
+    #[deprecated(since="0.0.8", note="Все поля  структуры  стали публичными.")]
     pub fn get_all(&self) 
     -> (String, String, String, String, bool) {
         // Эьа функцияя существует потому, что не все поля являются
@@ -52,7 +56,7 @@ impl Task {
         return( 
             self.name.clone(), self.descripion.clone(),
             self.category.clone(), 
-            self.craation_date_time.format("%Y-m-d %H:%M").to_string(), 
+            self.craation_date_time.format("%Y-%m-%d %H:%M").to_string(), 
             self.is_complete.clone()
             
         )

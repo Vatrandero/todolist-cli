@@ -1,6 +1,6 @@
 [package]
 name = "todolist-cli"
-version = "0.0.7-remove"
+version = "0.0.8"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

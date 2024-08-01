@@ -2,7 +2,9 @@
 //! структура-обёртка. 
 use std::path::Path; 
 use std::io::{Read, Write, Seek, SeekFrom};
-use rusqlite::{params, Connection, Statement};
+use clap::error;
+use rusqlite::{params, Connection, Rows, Statement};
+use serde::de::Error;
 //NOTE: ORM  в данном случаи не применяю.
 
  
@@ -50,7 +52,7 @@ pub fn commit_new (&self, task: &crate::tasks::Task)
 -> Result<(), String> 
 {
     let prer_res =  self.conn.prepare("INSERT INTO todos ( 
-    Name, Description, Category, date_creation
+    Name, Description, Category, Creation_date_time
 )
     VALUES (?,?,?,? ) ");
     //? Что вообеще модет пойти не так? 
@@ -103,7 +105,7 @@ pub fn commit_update(&self, task: crate::tasks::Task)
     такие вопросы.*/
     let prer_res =  self.conn.prepare("UPDATE todos ( 
      Description = ? , Category = ? , 
-     Date_creation = ?, Is_completed = ?) 
+     Creation_date_time = ?, Is_completed = ?) 
      WHERE name = ? 
  "); // Порядок для get_all = 1,2,3,4,0
         //? Что вообеще модет пойти не так? 
@@ -141,16 +143,16 @@ pub fn commit_update(&self, task: crate::tasks::Task)
         
         
     }
-    pub fn select_where(&self, predicate:  &str ) -> Result<Statement<'_>, String>   {
-        //note: в коммите 13 ветки master WHERE и предикаты теперь опциональная.
-        match  self.conn.prepare(
-            "SELECT * FROM todos PREDICATES  "
-            .replace("PREDICATES", predicate).as_str()) { 
-                Ok(r) => return Ok(r), 
-                Err(e) => return Err( format!("Error ehile prepraring query, bad request? \n {} ", e))
-            
-            }
-        
-
+    pub fn select_by_name_prep(&self ) -> Result<Statement, rusqlite::Error>   {
+        let mut  stmt =  match self.conn.prepare("SELECT * FROM todos \
+         WHERE name = ?") {
+            Ok(p) => return Ok(p),
+            Err(err) => return Err(err),
+        };
+         }
+         
     }
-} 
+    pub fn select_where()-> Result<(), Box<dyn std::error::Error>> {
+        Err("s".into())
+    }
+
