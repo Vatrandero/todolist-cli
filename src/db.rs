@@ -1,10 +1,7 @@
 //! Здесь описана логика работы с базой данных и 
 //! структура-обёртка. 
 use std::path::Path; 
-use std::io::{Read, Write, Seek, SeekFrom};
-use clap::error;
 use rusqlite::{params, Connection, Rows, Statement};
-use serde::de::Error;
 //NOTE: ORM  в данном случаи не применяю.
 
  

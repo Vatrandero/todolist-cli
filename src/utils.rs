@@ -13,7 +13,7 @@ use chrono::prelude::*;
 /// 
 pub fn get_timedate(s: &str) -> Result< chrono::NaiveDateTime, Box<dyn std::error::Error>> { 
 
-    let mut f = r"%Y-%m-%d %H:%M";
+    let  f = r"%Y-%m-%d %H:%M";
     dbg!(s); dbg!(f);
     let mut r_dt  = NaiveDateTime::parse_from_str(s, f);
     match r_dt { 
@@ -23,7 +23,6 @@ pub fn get_timedate(s: &str) -> Result< chrono::NaiveDateTime, Box<dyn std::erro
             // создании не указано время.
             // подставим 00:00 и попробуем снова.
         // если не получилось  - мы больше ничгео сделать не можем.
-         dbg!(e);
          if let ParseErrorKind::TooShort = e.kind() { 
            let mut s_=  s.to_string(); s_.push_str("00:00");
             r_dt =  NaiveDateTime::parse_from_str(s_.as_str(), f);
