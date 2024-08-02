@@ -1,4 +1,3 @@
-use std::str::FromStr;
 
 use chrono::format::ParseErrorKind;
 use chrono::{self, ParseError};

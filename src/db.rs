@@ -1,7 +1,7 @@
 //! Здесь описана логика работы с базой данных и 
 //! структура-обёртка. 
 use std::path::Path; 
-use rusqlite::{params, Connection, Rows, Statement};
+use rusqlite::{params, Connection, Statement};
 //NOTE: ORM  в данном случаи не применяю.
 
  
@@ -138,7 +138,7 @@ pub fn commit_update(&self, task: crate::tasks::Task)
         
     }
     pub fn select_by_name_prep(&self ) -> Result<Statement, rusqlite::Error>   {
-        let mut  stmt =  match self.conn.prepare("SELECT * FROM todos \
+        let   stmt =  match self.conn.prepare("SELECT * FROM todos \
          WHERE name = ?") {
             Ok(p) => return Ok(p),
             Err(err) => return Err(err),
