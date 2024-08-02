@@ -103,12 +103,13 @@ fn main()  {
         date shoukd be YYYY-MM-DD, also may be YYYY-MM-DD HH:MM \n\
         remove: remove name .  \n\
         update: (update namme); will start interactive mode. \n\
-        show all: show all. \n\
+        show all: (select *) \n\
        To show filtered: 
        select where [predicate]: You can use date = 'YYYY-MM-DD HH:MM', 
        if on creation no task creation - 00:00 be used, you also may not 
        specify time. \n\
-       YOU NEED TO USE '' OR \"\" TO WRAP VALUES!!!
+       predicate may be satus - 'On' or 'Done'
+       YOU NEED TO USE '' OR \"\" TO WRAP MORE THHEN ONE WORD VALUES!!!
        other predicate: category='some'. 
        you can combine them by 'and' word. \n ");
        let mut sbuf: String = String::with_capacity(255); 
@@ -127,9 +128,13 @@ fn main()  {
        //  не в одном из них.
        let mut in_quote = false; 
        'mainloop: loop { 
+        print!(">"); 
+        // на всякий слчай очистим все хранилища.
+        vbuf.clear();
+        sbuf.clear();
+        segment.clear();
+        act = ActionRequested::NoAct;
         sin.read_line(&mut sbuf).unwrap();
-      //  sbuf.clear(); 
-      //  vbuf.clear(); 
        // act = ActionRequested::NoAct;
         //NOTE: ручной перебор для отлова кавычек.
         //? Возможно, стоило воспользоваться regex? 
@@ -205,7 +210,7 @@ fn main()  {
             };
             let cat = vbuf.get(3).unwrap().to_owned();
             match conn.commit_new(&Task::new(name, dscr,
-                                 date, cat)) {
+                                  false ,date, cat)) { // завершённость задачи здесь не важна.
                                     Ok(_) => {
                                         print!("add sucess.");
                                         vbuf.clear();
@@ -242,7 +247,7 @@ fn main()  {
                     let mut dt = t.get::<_,String>(4).unwrap();
                     Task::new(t.get(0).unwrap(),
                          t.get(1).unwrap(),
-                          utils::get_timedate(dt.as_str()).unwrap(),
+                          false,utils::get_timedate(dt.as_str()).unwrap(),
                           t.get(2).unwrap())
                    },
                     _ => { print!("no such task."); continue 'mainloop;  }

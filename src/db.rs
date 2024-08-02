@@ -31,15 +31,12 @@ pub fn load_db(file_path: &Path) -> Self {
     но судя по ТЗ name считается уникальным само по себе. */
     Description TEXT NOT NULL, 
     Category VARCHAR(32) NOT NULL, 
-    Is_complteed BOOLEAN DEFAULT FALSE REFERENCES status, 
+    Status TEXT DEFAULT 'ON', 
     Creation_date_time DATETIME NOT NULL 
     
 )
 ", ());
     
-    conn.execute("CREATE INDEX catg ON todos (Cateory)", ()); 
-    // Если мы смлшди лькоыьб файд как БД. а в ходе проверки индекса 
-    // (с влмзможным его созданием) = то мы можес спокойно отдать соединение.
     return ConnHandler { conn  }
 } 
 

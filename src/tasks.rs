@@ -13,11 +13,11 @@ pub struct Task {
 
 impl Task { 
      /// NOTE: d - это кол-во секунд от UNIX_EPOCH. 
-     pub fn new(head : String, desc: String, d: chrono::NaiveDateTime, cat: String  ) -> Self
+     pub fn new(head : String, desc: String, is_completed:bool, d: chrono::NaiveDateTime, cat: String  ) -> Self
      {
          Self {
             name: head, 
-            is_complete:false, 
+            is_complete:is_completed, 
             descripion: desc, 
             // не смотря на то, что в ТЗ 
             // дата рассмаривается как дата сздания - 
