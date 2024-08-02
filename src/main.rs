@@ -3,7 +3,7 @@ pub mod tasks;
 pub mod utils; 
 mod db; 
 use crate::db::ConnHandler;
-use std::io::{BufRead,Read};  
+use std::io::{BufRead,Read, Stdout, Write};  
 use std::ops::Add;
 use std::path::{Path, PathBuf};
 use std::fs;
@@ -111,7 +111,7 @@ fn main()  {
        predicate may be satus - 'On' or 'Done'
        YOU NEED TO USE '' OR \"\" TO WRAP MORE THHEN ONE WORD VALUES!!!
        other predicate: category='some'. 
-       you can combine them by 'and' word. \n ");
+       you can combine them by 'and' word. \n\0");
        let mut sbuf: String = String::with_capacity(255); 
        // сегмент - целоая часть команды: сама команда или её
        // аргумент.
@@ -128,7 +128,8 @@ fn main()  {
        //  не в одном из них.
        let mut in_quote = false; 
        'mainloop: loop { 
-        print!(">"); 
+        print!(">");
+        std::io::stdout().flush().unwrap(); 
         // на всякий слчай очистим все хранилища.
         vbuf.clear();
         sbuf.clear();
@@ -188,7 +189,9 @@ fn main()  {
     }  
     // К этому моменту мы должны знать команду
     // и должны иметь набор даннных дляя неё.
-    match &act { 
+    
+    match 
+    &act { 
         ActionRequested::Add => { 
             if debug {
                 println!("dbg: reached add call, segments are: \n {:?}", vbuf) 
