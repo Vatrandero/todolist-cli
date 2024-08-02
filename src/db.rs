@@ -147,7 +147,10 @@ pub fn commit_update(&self, task: crate::tasks::Task)
             Err(err) => return Err(err),
         };
          }
-
+    /// SAFETY: В любом другом проекте передача сырого ввода от пользователяя опасна, возможны инъекции.
+    pub fn select_where(&self, w:&String)-> Result<rusqlite::Statement, rusqlite::Error> {
+        return  self.conn.prepare(format!("SELECT * FROM todos {}", w).as_str());
+        }
     pub fn done(&self, name: String) -> Result<(), ()> {
         let mut stmt = self.conn.prepare("UPDATE todos SET status=DONE WHERE name = ?  ").unwrap();
         return match ( stmt.execute(params![name])) { 
@@ -156,7 +159,5 @@ pub fn commit_update(&self, task: crate::tasks::Task)
         }
     }       
     }
-    pub fn select_where()-> Result<(), Box<dyn std::error::Error>> {
-        Err("s".into())
-    }
+
 

@@ -6,7 +6,7 @@ use crate::db::ConnHandler;
 use std::io::{BufRead,Read, Stdout, Write};  
 use std::ops::Add;
 use std::path::{Path, PathBuf};
-use std::fs;
+use std::{fs, string};
 use std::str::FromStr; 
 // Решаю не сканировать argv сам, использую clap.
 use clap::Parser;   
@@ -169,11 +169,23 @@ fn main()  {
                         } 
                 
                 };
+            // команда определена, нужно собрать аргументы
             continue 'scanloop; }         
 
         }
         // Мы знаем запрошенную операцию и пытаемься
         // собрать информацию для 
+        else if let ActionRequested::Select = act  { 
+            // в качестве наполнения vbuf 
+            // будет всего одна строка, которая 
+            if !sbuf.contains('*') { 
+                println!("partial select not implemented on application level."); 
+                continue 'mainloop; 
+            }
+            let cut_idx = sbuf.find('*').unwrap();
+            vbuf.push(sbuf[cut_idx+1..].trim().to_string());
+            break 'scanloop;
+        }
         else {
          if (c != ' ' && c != '\n' )|| in_quote {
             segment.push(c);
@@ -293,8 +305,63 @@ fn main()  {
         ActionRequested::Done => {
 
          }
+        
+        ActionRequested::Select => { 
+            // Таски будут собраны в один вектор. 
+            // затем весь вектор через for будет выведен в консоль.
 
-        _ => { vbuf.clear(); continue;}  
+            let mut tasks: Vec<Task> = Vec::new(); 
+            if debug { 
+                println!("reached select command, user filter:");
+                dbg!(&vbuf);
+            }
+            let mut _s: rusqlite::Statement; // искуственно продляю жизнь Statement
+            let mut rows =  match  conn.select_where(vbuf.get(0).unwrap()) { 
+                Ok(mut s) => {
+                    _s = s;
+                   match _s.query([])  { // Мы уже передали параметры сырым путём. 
+                    Ok(r) => r, 
+                    Err(e) => { 
+                        println!("error on getting rows.");
+                        if debug {println!("dbg: {:?}", e) };
+                        continue 'mainloop;
+                    }
+                   }
+                }  , 
+                Err(e) => {
+                    println!("selection failed on prepare.."); 
+                    if debug {println!("error: {}",e);} 
+                    continue 'mainloop;
+                }
+            };
+
+        while let Some(row)  = rows.next().unwrap()  {
+
+            let name:String = row.get(0).unwrap();
+            let desrc = row.get(1).unwrap();
+            let catg  = row.get(2).unwrap();
+            let _statuss:String = row.get(3).unwrap();
+            let is_completed = match _statuss.trim().to_ascii_uppercase().as_str() {
+                "DONE" => true,
+                _ => false
+             };
+            let date  = utils::get_timedate(
+                row.get::<_,String>(4).unwrap().as_str()).unwrap();
+            let _t = Task::new(
+                name,
+                desrc,
+                is_completed,
+                date, 
+                catg);
+                tasks.push(_t)
+            
+        }
+        for t in tasks { 
+            print!("{}", t);
+        }   
+        }
+        
+        _ => { continue;}  
     }
 
     std::thread::sleep(std::time::Duration::from_millis(100))       
