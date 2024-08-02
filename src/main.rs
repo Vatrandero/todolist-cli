@@ -23,7 +23,8 @@ enum ActionRequested {
      Add    ,
      Remove , 
      Update ,
-     Select   , 
+     Done   ,
+     Select , 
      NoAct   
 }
 
@@ -39,6 +40,7 @@ impl ActionRequested {
             Self::Add    => 4,
             Self::Select => 2, // Всё, что после WHERE - передаётся без разбора.
             Self::Update => 1,
+            Self::Done   => 1,
             Self::Remove => 1, 
             Self::NoAct =>  0, // Команда не определена, сегменты не считаюся.
             _ => 0 
@@ -94,7 +96,7 @@ fn main()  {
      }
      let conn = ConnHandler::load_db(path); //db::load_db(path);
   //   println!("{}", todo!());
-     print!(" Welcome to TODO  list manager!");
+     println!(" Welcome to TODO  list manager!");
      let sin = std::io::stdin();
      print!(
      "you can: \n\
@@ -108,9 +110,10 @@ fn main()  {
        select where [predicate]: You can use date = 'YYYY-MM-DD HH:MM', 
        if on creation no task creation - 00:00 be used, you also may not 
        specify time. \n\
-       predicate may be satus - 'On' or 'Done'
-       YOU NEED TO USE '' OR \"\" TO WRAP MORE THHEN ONE WORD VALUES!!!
-       other predicate: category='some'. 
+       predicate may be status - 'On' or 'Done' \
+       SELECT *  where status = On
+       YOU NEED TO USE '' OR \"\" TO WRAP MORE THHEN ONE WORD VALUES!!!\
+             other predicate: category='some'. 
        you can combine them by 'and' word. \n\0");
        let mut sbuf: String = String::with_capacity(255); 
        // сегмент - целоая часть команды: сама команда или её
@@ -158,8 +161,9 @@ fn main()  {
                 "ADD"=> { segment.clear(); ActionRequested::Add},
                 "REMOVE" => {segment.clear(); ActionRequested::Remove}
                 "UPDATE" => {segment.clear(); ActionRequested::Update}
+                "DONE"   => {segment.clear(); ActionRequested::Done}
                 "SELECT" => {segment.clear(); ActionRequested::Select}
-                 _   =>{  print!("unknown command");
+                 _   =>{  println!("unknown command");
                           segment.clear(); 
                           continue 'scanloop;
                         } 
@@ -205,8 +209,8 @@ fn main()  {
             date = match utils::get_timedate(vbuf.get(2).unwrap().as_str()) {
                 Ok(dt) => dt, 
                 Err(e) => { 
-                    print!("Failed to parse date-time.");
-                    if debug{print!("{:?}", e)}
+                    println!("Failed to parse date-time.");
+                    if debug{println!("{:?}", e)}
                     vbuf.clear();
                     continue 'mainloop;
                 }                
@@ -215,7 +219,7 @@ fn main()  {
             match conn.commit_new(&Task::new(name, dscr,
                                   false ,date, cat)) { // завершённость задачи здесь не важна.
                                     Ok(_) => {
-                                        print!("add sucess.");
+                                        println!("add sucess.");
                                         vbuf.clear();
                                     }
                                     Err(e) => { 
@@ -253,7 +257,7 @@ fn main()  {
                           false,utils::get_timedate(dt.as_str()).unwrap(),
                           t.get(2).unwrap())
                    },
-                    _ => { print!("no such task."); continue 'mainloop;  }
+                    _ => { println!("no such task."); continue 'mainloop;  }
                    }
                           // FIXME: Слишком большое нагромаждение.
                },
@@ -285,7 +289,10 @@ fn main()  {
 
 
 
-        }
+        },
+        ActionRequested::Done => {
+
+         }
 
         _ => { vbuf.clear(); continue;}  
     }

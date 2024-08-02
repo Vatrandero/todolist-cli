@@ -147,7 +147,14 @@ pub fn commit_update(&self, task: crate::tasks::Task)
             Err(err) => return Err(err),
         };
          }
-         
+
+    pub fn done(&self, name: String) -> Result<(), ()> {
+        let mut stmt = self.conn.prepare("UPDATE todos SET status=DONE WHERE name = ?  ").unwrap();
+        return match ( stmt.execute(params![name])) { 
+            Ok(_) => Ok(()),
+            _ => Err(())
+        }
+    }       
     }
     pub fn select_where()-> Result<(), Box<dyn std::error::Error>> {
         Err("s".into())
