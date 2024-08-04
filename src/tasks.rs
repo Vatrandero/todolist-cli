@@ -68,9 +68,9 @@ impl Task {
 impl std::fmt::Display for Task { 
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let status = if (self.is_complete){"Done"} else{"On"};
-        write!(f, "Name: {} \n Description:\n {}; \n Status:{} \n datetime of creation:{}   ",
+        write!(f, "Name: {} \n Description:\n {}; \n Status:{} \n datetime of creation:{} \n ",
          self.name, self.descripion, status,
-         self.craation_date_time.format("%Y-m-d %H:%M").to_string())        
+         self.craation_date_time.format("%Y-%m-%d %H:%M").to_string())        
     }
 }
 
